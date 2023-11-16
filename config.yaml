@@ -1,0 +1,13 @@
+
+
+path: D:\Github\Football_Analytics_CV\dataset
+train: train
+test: test
+val: valid
+
+# Classes
+
+names:
+  0: Ball
+  1: Player
+  2: Referee
