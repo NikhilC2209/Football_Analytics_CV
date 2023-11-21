@@ -3,7 +3,7 @@ import numpy as np
 
 # Open Image
 
-sample_img = cv2.imread("sample/flower.jpg") 
+sample_img = cv2.imread("sample/img1.jpg") 
 sample_img = cv2.resize(sample_img, (768, 540))  
 
 # In-Range Filtering
