@@ -27,7 +27,7 @@ cv2.createTrackbar('highV','marking', highV, 255,nothing)
 
 while True:
 
-    frame = cv2.imread("results/gk.jpg") 
+    frame = cv2.imread("results/Man_UTD_player.jpg") 
     #frame = cv2.resize(frame, (768, 540))  
 
     ilowH = cv2.getTrackbarPos('lowH', 'marking')
