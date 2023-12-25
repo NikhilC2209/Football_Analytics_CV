@@ -1,0 +1,21 @@
+Team,Home,Away,Third,GK1,GK2
+Arsenal,"((170, 130,100), (179,255,255))","((28, 90,141), (40,255,255))","(90, 102,0), (102,255,255)","((0,0,0), (179,76,114))","((90,142,0), (124,255,255))"
+Aston Villa,,,,,
+Bournemouth,,,,,
+Brentford,,,,,
+Brighton,,,,,
+Burnley,,,,,
+Chelsea,,,,,
+Crystal Palace,,,,,
+Everton,,,,,
+Fulham,,,,,
+Liverpool,"((0, 0, 0), (10, 255, 255))","((0, 0,156) (179,255,255))","(118, 45,49), (149,146,255)","((38,0,0), (179,255,109))","((47,0,0), (80,255,255))"
+Luton Town,,,,,
+Man City,,,,,
+Man UTD,,,,,
+Newcastle,,,,,
+Nottingham Forest,,,,,
+Sheffield UTD,,,,,
+Tottenham,,,,,
+West Ham,,,,,
+Wolves,": (169, 0, 0); (179, 255, 255)",,,,

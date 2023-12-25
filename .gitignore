@@ -5,9 +5,9 @@ dataset
 YOLO_CV
 IAUFD
 YOLO_weights
-sample/MAN_Derby.mkv
-sample/MAN_Derby_sample.mkv
+sample
 runs
 yolov8n.pt
-__pycache__
+__pycache__/
 runs
+jerseys

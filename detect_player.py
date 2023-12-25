@@ -5,10 +5,10 @@ import time
 # Load the YOLOv8 model
 # model = YOLO('yolov8n.pt')          ### Pre-trained weights
 
-model = YOLO('runs/detect/train2/weights/best.pt')          ### Custom weights
+model = YOLO('runs/detect/train4/weights/best.pt')          ### Custom weights
 
 # Open the video file
-video_path = "sample/ARS_VS_LENS.mp4"
+video_path = "sample/clip3.mkv"
 cap = cv2.VideoCapture(video_path)
 
 fps_start_time = 0
@@ -16,7 +16,7 @@ fps = 0
 
 # INFERENCE
 
-results = model.track(source="sample/MAN_Derby.mkv", persist=True, show=True, save=True, save_crop=True, tracker="botsort.yaml", line_width=2)
+results = model.track(source="sample/clip6.mkv", persist=True, show=True, save=True, save_crop=True, tracker="botsort.yaml", line_width=2)
 
 # Loop through the video frames
 # while cap.isOpened():

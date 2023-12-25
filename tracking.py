@@ -15,6 +15,7 @@
 #     im.save('results.jpg')  # save image
 
 import cv2
+import pandas as pd
 from ultralytics import YOLO
 from crop_filtering import *
 
@@ -23,24 +24,77 @@ model = YOLO('runs/detect/train4/weights/best.pt')
 
 # Open the video file
 #video_path = "clips/40cd38_1.mp4"
-video_path = "sample/MAN_Derby_sample.mkv"
+video_path = "sample/Liverpool_vs_Arsenal.mkv"
+df = pd.read_csv("hsv_codes.csv")
 cap = cv2.VideoCapture(video_path)
 
-# SKY-BLUE MASK (MAN CITY)
+def get_teams(filename):
+    match_name = filename.split("/")[1].split(".")[0]
+    team1, team2 = match_name.split("_vs_")
 
-team1_hsv = (np.array((80, 0, 120)), np.array((110, 255, 255))) 
+    print(team1, team2)
 
-# RED MASK (MAN UTD)
+    return team1, team2
 
-team2_hsv = (np.array((169, 0, 0)), np.array((179, 255, 255)))
+def load_masks(df, team1, team2):
 
-# GREEN MASK (MAN CITY & MAN UTD GK)
+    team1_codes = df['Home'][df['Team']==team1].item()
+    team2_codes = df['Away'][df['Team']==team2].item()
 
-gk1_hsv = (np.array((35, 0, 151)), np.array((80, 255, 255)))    
-gk2_hsv = (np.array((35, 0, 151)), np.array((80, 255, 255)))   
+    team1_gk = df['GK1'][df['Team']==team1].item()
+    team2_gk = df['GK2'][df['Team']==team2].item()
+
+    # team1_lower_mask, team1_upper_mask = team1.split(";")
+    # team2_lower_mask, team2_upper_mask = team2.split(";")
+
+    #return team1_lower_mask, team1_upper_mask, team2_lower_mask, team2_upper_mask, team1_gk, team2_gk
+    return eval(team1_codes), eval(team2_codes), eval(team1_gk), eval(team2_gk)             # eval() to convert from string to tuple
+
+def get_color_labels():
+
+    team1 = (0,0,255)
+    team2 = (0,255,255)
+
+    gk1 = (0,0,255)
+    gk2 = (0,255,255)
+
+    ball = (128,0,128)
+    referee = (0,0,0)
+
+    return team1, team2, gk1, gk2
+
+def multi_key_dict_get(d, k):
+    for keys, v in d.items():
+        if k in keys:
+            return v
+    return None
+
+### LIV vs ARS
+
+team1, team2 = get_teams(video_path)
+# team1_lower_mask, team1_upper_mask, team2_lower_mask, team2_upper_mask, team1_gk, team2_gk = load_masks(df, team1, team2)
+
+team1_hsv, team2_hsv, gk1_hsv, gk2_hsv = load_masks(df, team1, team2)
+
+# team1_hsv = (np.array(team1_lower_mask), np.array(team1_upper_mask))
+# team2_hsv = (np.array(team2_lower_mask), np.array(team2_upper_mask))
+
+# # SKY-BLUE MASK (MAN CITY)
+
+# team1_hsv = (np.array((80, 0, 120)), np.array((110, 255, 255))) 
+
+# # RED MASK (MAN UTD)
+
+# team2_hsv = (np.array((169, 0, 0)), np.array((179, 255, 255)))
+
+# # GREEN MASK (MAN CITY & MAN UTD GK)
+
+# gk1_hsv = (np.array((35, 0, 151)), np.array((80, 255, 255)))    
+# gk2_hsv = (np.array((35, 0, 151)), np.array((80, 255, 255)))   
         
-#labels = get_labels("MAN_CITY", "MAN_UTD", "MAN_CITY_GK", "MAN_UTD_GK")
-color_labels = {"MAN_CITY": (235, 206, 135), "MAN_UTD": (0,0,255), "MAN_CITY_GK": (0,255,0), "MAN_UTD_GK": (0,255,0), "BALL": (128,0,128), "REFEREE": (0,0,0)}    # BGR FORMAT, NOT HSV
+# #labels = get_labels("MAN_CITY", "MAN_UTD", "MAN_CITY_GK", "MAN_UTD_GK")
+# color_labels = {"MAN_CITY": (235, 206, 135), "MAN_UTD": (0,0,255), "MAN_CITY_GK": (0,255,0), "MAN_UTD_GK": (0,255,0), "BALL": (128,0,128), "REFEREE": (0,0,0)}    # BGR FORMAT, NOT HSV
+color_labels = {("Liverpool", "Liverpool_GK") : (0,0,255), ("Arsenal", "Arsenal_GK") : (0,255,255), "Ball": (128,0,128), "Referee": (0,0,0)}    # BGR FORMAT, NOT HSV
 
 # Loop through the video frames
 while cap.isOpened():
@@ -64,11 +118,11 @@ while cap.isOpened():
 
         for ref in referee_coords_list:
             x1, y1, x2, y2 = ref
-            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["REFEREE"], 1)
+            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["Referee"], 2)
 
         for ball in ball_coords_list:
             x1, y1, x2, y2 = ball
-            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["BALL"], 1)
+            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["Ball"], 2)
 
         
         for player in player_coords_list:
@@ -84,13 +138,16 @@ while cap.isOpened():
             all_masks = get_all_masks(crop_img, team1_hsv, team2_hsv, gk1_hsv, gk2_hsv)
             count1, count2, count3, count4 = get_pixel_count(crop_img, all_masks)
 
-            labels = {count1: "MAN_CITY", count2: "MAN_UTD", count3: "MAN_CITY_GK", count4: "MAN_UTD_GK"}
+            # labels = {count1: "MAN_CITY", count2: "MAN_UTD", count3: "MAN_CITY_GK", count4: "MAN_UTD_GK"}
+
+            labels = {count1: team1, count2: team2, count3: team1+"_GK", count4: team2+"_GK"}
 
             crop_label = labels.get(max(labels))
-            # print(crop_label)
+            final_label = multi_key_dict_get(color_labels, crop_label)
+            #print(final_label)
 
             # PLOT BOUNDING BOXES
-            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels[crop_label], 1)
+            img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), final_label, 2)
         
         #cv2.imshow("Cropped", crop_img)
         cv2.imshow("YOLOv8 Tracking", img)

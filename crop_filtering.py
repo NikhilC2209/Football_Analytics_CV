@@ -47,6 +47,7 @@ import numpy as np
 
 def get_all_masks(img, team1_hsv, team2_hsv, gk1_hsv, gk2_hsv):
 
+	#print(team1_hsv)
 	lower_team1, upper_team1 = team1_hsv
 	lower_team2, upper_team2 = team2_hsv
 	lower_gk1, upper_gk1 = gk1_hsv
