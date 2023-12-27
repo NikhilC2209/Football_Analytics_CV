@@ -28,6 +28,9 @@ video_path = "sample/Liverpool_vs_Arsenal.mkv"
 df = pd.read_csv("hsv_codes.csv")
 cap = cv2.VideoCapture(video_path)
 
+def get_match_name(filename):
+    return filename.split("/")[1].split(".")[0]
+
 def get_teams(filename):
     match_name = filename.split("/")[1].split(".")[0]
     team1, team2 = match_name.split("_vs_")
@@ -96,11 +99,14 @@ team1_hsv, team2_hsv, gk1_hsv, gk2_hsv = load_masks(df, team1, team2)
 # color_labels = {"MAN_CITY": (235, 206, 135), "MAN_UTD": (0,0,255), "MAN_CITY_GK": (0,255,0), "MAN_UTD_GK": (0,255,0), "BALL": (128,0,128), "REFEREE": (0,0,0)}    # BGR FORMAT, NOT HSV
 color_labels = {("Liverpool", "Liverpool_GK") : (0,0,255), ("Arsenal", "Arsenal_GK") : (0,255,255), "Ball": (128,0,128), "Referee": (0,0,0)}    # BGR FORMAT, NOT HSV
 
+output_clip = cv2.VideoWriter("results/" + get_match_name(video_path) + ".avi", cv2.VideoWriter_fourcc(*'MJPG'), 60, (1920, 1080)) 
+
 # Loop through the video frames
 while cap.isOpened():
     # Read a frame from the video
     success, frame = cap.read()
 
+    #print(frame.shape)
     # fps = int(cap.get(cv2.CAP_PROP_FPS))
     # print("fps: ", fps)
 
@@ -111,21 +117,35 @@ while cap.isOpened():
         for r in results:
             all_labels = r.boxes.cls.tolist()
             all_coords_list = r.boxes.xyxy.tolist()
+            all_conf_scores = r.boxes.conf.tolist() 
 
-        player_coords_list = [all_coords_list[i] for i in range(len(all_coords_list)) if all_labels[i]==1]          # Label 1 refers to Player Label
-        referee_coords_list = [all_coords_list[i] for i in range(len(all_coords_list)) if all_labels[i]==2]         # Label 2 refers to Referee Label
-        ball_coords_list = [all_coords_list[i] for i in range(len(all_coords_list)) if all_labels[i]==0]            # Label 0 refers to Ball Label
+        #print(all_conf_scores)
 
-        for ref in referee_coords_list:
+        player_coords_list = [(all_coords_list[i], str(round(all_conf_scores[i],2))) for i in range(len(all_coords_list)) if all_labels[i]==1]          # Label 1 refers to Player Label
+        referee_coords_list = [(all_coords_list[i], str(round(all_conf_scores[i],2))) for i in range(len(all_coords_list)) if all_labels[i]==2]         # Label 2 refers to Referee Label
+        ball_coords_list = [(all_coords_list[i], str(round(all_conf_scores[i],2))) for i in range(len(all_coords_list)) if all_labels[i]==0]            # Label 0 refers to Ball Label
+
+        for (ref, score) in referee_coords_list:
             x1, y1, x2, y2 = ref
             img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["Referee"], 2)
 
-        for ball in ball_coords_list:
+            (text_w, text_h), _ = cv2.getTextSize("Referee: " + score, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
+
+            # PRINT TEXT ON BOUNDING BOXES
+            img = cv2.rectangle(img, (int(x1), int(y1 - 20)), (int(x1 + text_w), int(y1)), color_labels["Referee"], -1)
+            cv2.putText(img, "Referee: " + score, (int(x1), int(y1-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
+
+        for (ball, score) in ball_coords_list:
             x1, y1, x2, y2 = ball
             img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color_labels["Ball"], 2)
 
+            (text_w, text_h), _ = cv2.getTextSize("Ball: " + score, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
+
+            # PRINT TEXT ON BOUNDING BOXES
+            img = cv2.rectangle(img, (int(x1), int(y1 - 20)), (int(x1 + text_w), int(y1)), color_labels["Ball"], -1)
+            cv2.putText(img, "Ball: " + score, (int(x1), int(y1-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
         
-        for player in player_coords_list:
+        for (player, score) in player_coords_list:
             x1, y1, x2, y2 = player
 
             # CROPPED IMAGE
@@ -148,7 +168,15 @@ while cap.isOpened():
 
             # PLOT BOUNDING BOXES
             img = cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), final_label, 2)
-        
+
+            (text_w, text_h), _ = cv2.getTextSize(crop_label + ": " + score, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
+
+            # PRINT TEXT ON BOUNDING BOXES
+            img = cv2.rectangle(img, (int(x1), int(y1 - 20)), (int(x1 + text_w), int(y1)), final_label, -1)
+            cv2.putText(img, crop_label + ": " + score, (int(x1), int(y1-5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
+
+        output_clip.write(img)
+
         #cv2.imshow("Cropped", crop_img)
         cv2.imshow("YOLOv8 Tracking", img)
 
@@ -161,6 +189,7 @@ while cap.isOpened():
 
 # Release the video capture object and close the display window
 cap.release()
+output_clip.release()
 cv2.destroyAllWindows()
 
 
