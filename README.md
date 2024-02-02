@@ -60,3 +60,21 @@ Then access the weights from ```runs/detect/predict/weights``` to run inference
 To run inference for simple player and ball tracking run ```python detect_player.py``` by specifying weight from the trained model. 
 
 The inference video is stored at ```runs/detect/predict``` in .avi format
+
+### For Inference with Color Filtering based on Team Jerseys
+
+Use the ```hsv_codes.csv``` file to access the color codes of each Premier League team (23/24 season).
+Right now only I've only updated Liverpool and Arsenal team jersey codes, I'll populate the rest shortly...
+
+
+| Team | Home | Away | Third | GK1 | GK2
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| Arsenal | ((170, 130,100), (179,255,255)) | ((28, 90,141), (40,255,255)) | (90, 102,0), (102,255,255) | ((0,0,0), (179,76,114)) | ((90,142,0), (124,255,255)) | 
+| Liverpool | ((0, 0, 0), (10, 255, 255)) | ((0, 0,156) (179,255,255)) | (118, 45,49), (149,146,255) | ((38,0,0), (179,255,109)) | ((47,0,0), (80,255,255)) |
+
+To run inference use the ```tracking.py``` file and place your video file in the sample video using the naming convention "Home_vs_Away.mkv", this way the module parses the first team in the string as the home team and the second team as the away team. For example: Liverpool(Home) and Arsenal(Away) match file should be named as "Liverpool_vs_Arsenal.mkv"
+
+> [!NOTE]  
+> This is an important step since all teams have different home and away jerseys for players as well as goalkeepers.
+
+
