@@ -32,3 +32,31 @@ pip install -r requirements.txt
 ```
 
 Download hand-annotated Dataset from Roboflow Universe: https://universe.roboflow.com/nikhil-chapre-xgndf/detect-players-dgxz0
+
+## TRAINING ON CUSTOM DATASET
+
+Prepare a config.yaml file 
+
+```
+path: D:\Github\Football_Analytics_CV\dataset                # absolute path to your dataset folder
+train: train                                                 
+test: test                                                   # relative path to your train/test/val folders
+val: valid
+
+# Label all classes in your dataset
+
+names:
+  0: Ball
+  1: Player
+  2: Referee
+```
+
+Then Run ```python train.py``` with any yolov8 weight of your choice (preferrably yolovn.pt/yolov8m.pt) 
+
+Then access the weights from ```runs/detect/predict/weights``` to run inference
+
+## INFERENCE
+
+To run inference for simple player and ball tracking run ```python detect_player.py``` by specifying weight from the trained model. 
+
+The inference video is stored at ```runs/detect/predict``` in .avi format
